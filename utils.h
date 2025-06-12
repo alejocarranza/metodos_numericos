@@ -23,10 +23,18 @@ std::vector<double> gaussSeidel(const std::vector<std::vector<double>>& A,
                                   double tolerancia,
                                   int maxIteraciones);
 
+// Resuelve un sistema de ecuaciones lineales 3x3 usando el metodo de Eliminacion Gaussiana
+// Retorna un vector con los coeficientes [a, b, c]
+std::vector<double> gaussianElimination(std::vector<std::vector<double>> A,
+                                        std::vector<double> b);
+
 // Funcion para imprimir un vector (util para depuracion y visualizacion)
 void imprimirVector(const std::string& nombre, const std::vector<double>& vec);
 
 // Funcion para imprimir una matriz 3x3 (util para visualizacion del sistema)
 void imprimirMatriz(const std::string& nombre, const std::vector<std::vector<double>>& mat);
+
+// Funcion para imprimir una matriz aumentada [A|b] (util para visualizacion del proceso de eliminacion Gaussiana)
+void imprimirMatrizAumentada(const std::string& nombre, const std::vector<std::vector<double>>& A, const std::vector<double>& b);
 
 #endif // UTILS_H 

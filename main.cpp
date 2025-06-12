@@ -126,15 +126,21 @@ int main() {
     std::cout << "\nPresione Enter para resolver el sistema con Gauss-Seidel..." << std::endl;
     std::cin.get();
 
-    // --- 5. Resolucion con Gauss-Seidel --- 
-    std::cout << "\n--- Resolucion del Sistema con Gauss-Seidel ---" << std::endl;
-    std::cout << "Vamos a encontrar los valores de a, b y c de forma iterativa." << std::endl;
-    std::cout << "Observa como los valores se ajustan en cada paso:" << std::endl;
+    // --- 5. Resolucion con Eliminacion Gaussiana --- 
+    std::cout << "\n--- 🔢 Resolucion del Sistema con Eliminacion Gaussiana ---" << std::endl;
+    std::cout << "Vamos a encontrar los valores de a, b y c directamente usando eliminacion Gaussiana." << std::endl;
 
-    double tolerancia = 0.0001;
-    int maxIteraciones = 1000;
-    std::vector<double> coeficientes = gaussSeidel(A, b, tolerancia, maxIteraciones);
+    std::vector<double> coeficientes = gaussianElimination(A, b);
     
+    // Comprobar si la eliminacion Gaussiana encontro una solucion
+    if (coeficientes.empty()) {
+        std::cerr << "\nError: La Eliminacion Gaussiana no pudo encontrar una solucion. "
+                  << "Esto puede deberse a una matriz singular o a una division por cero.\n";
+        std::cout << "Presione Enter para salir..." << std::endl;
+        std::cin.get();
+        return 1; // Salir del programa con un codigo de error
+    }
+
     double a = coeficientes[0];
     double b_coef = coeficientes[1]; // Renombrado para evitar conflicto con vector b
     double c = coeficientes[2];
@@ -145,7 +151,7 @@ int main() {
     // --- 6. Modelo Ajustado --- 
     std::cout << "\n--- Modelo de Rendimiento Ajustado ---" << std::endl;
     std::cout << "Hemos encontrado los coeficientes para el modelo que mejor describe el rendimiento:" << std::endl;
-    std::cout << std::fixed << std::setprecision(4);
+    std::cout << std::fixed << std::setprecision(15);
     std::cout << "f(x) = " << a << "x^2 + " << b_coef << "x + " << c << std::endl;
 
     std::cout << "\nDonde:" << std::endl;
