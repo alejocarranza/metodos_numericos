@@ -152,42 +152,96 @@ int main() {
     std::cout << "  x = Numero de usuarios concurrentes" << std::endl;
     std::cout << "  f(x) = Tiempo de respuesta esperado en milisegundos" << std::endl;
 
-    // --- Generar CSV para el grafico ---
-    std::cout << "\n--- Generando datos para el grafico en CSV ---" << std::endl;
-    std::ofstream csvFile("rendimiento_datos.csv");
-    if (csvFile.is_open()) {
-        csvFile << "Usuarios,Tiempo_Real,Tiempo_Estimado\n";
+    // --- 8. Grafico de Texto en Terminal ---
+    std::cout << "\n--- 📉 Grafico de Rendimiento en Terminal (ASCII Art) ---" << std::endl;
+    std::cout << "Este es un grafico aproximado de la funcion en la terminal:" << std::endl;
+    std::cout << "(Curva: *, Datos Originales: o)" << std::endl;
 
-        // Escribir los datos originales
-        for (size_t i = 0; i < datos.usuarios.size(); ++i) {
-            double tiempoEstimado = a * std::pow(datos.usuarios[i], 2) + b_coef * datos.usuarios[i] + c;
-            csvFile << datos.usuarios[i] << "," << datos.tiempoRespuesta[i] << "," << std::fixed << std::setprecision(4) << tiempoEstimado << "\n";
+    const int plotWidth = 70;  // Ancho del grafico en caracteres
+    const int plotHeight = 20; // Alto del grafico en lineas
+
+    std::vector<std::string> plot(plotHeight, std::string(plotWidth, ' '));
+
+    // Determinar rangos para escalar
+    double minX = datos.usuarios.empty() ? 0 : datos.usuarios[0];
+    double maxX = datos.usuarios.empty() ? 10 : datos.usuarios.back();
+    if (maxX < 10) maxX = 10; // Asegurar un minimo para el rango X
+    
+    // Extender el rango X para la curva
+    maxX *= 1.2;
+
+    double minY = 0, maxY = 0;
+
+    // Calcular minY y maxY de la funcion dentro del rango de usuarios
+    bool firstY = true;
+    for (double x = minX; x <= maxX; x += (maxX - minX) / plotWidth) {
+        double y_val = a * std::pow(x, 2) + b_coef * x + c;
+        if (firstY) {
+            minY = y_val;
+            maxY = y_val;
+            firstY = false;
+        } else {
+            if (y_val < minY) minY = y_val;
+            if (y_val > maxY) maxY = y_val;
         }
-
-        // Generar puntos adicionales para la curva ajustada
-        double minX = datos.usuarios.empty() ? 0 : datos.usuarios[0];
-        double maxX = datos.usuarios.empty() ? 10 : datos.usuarios.back();
-        // Extender el rango un 20% más allá del máximo para que la curva se vea mejor
-        maxX *= 1.2;
-
-        // Generar 50 puntos adicionales para la curva
-        for (int i = 0; i <= 50; ++i) {
-            double x = minX + (maxX - minX) * i / 50.0;
-            double y_estimado = a * std::pow(x, 2) + b_coef * x + c;
-            csvFile << x << ",," << std::fixed << std::setprecision(4) << y_estimado << "\n"; // Sin tiempo real para estos puntos
-        }
-
-        csvFile.close();
-        std::cout << "Archivo 'rendimiento_datos.csv' generado exitosamente.\n";
-        std::cout << "Puedes abrir este archivo en Excel, Google Sheets o un graficador online para visualizar los datos.\n";
-    } else {
-        std::cerr << "Error: No se pudo crear el archivo 'rendimiento_datos.csv'.\n";
     }
+
+    // Asegurar que maxY no sea cero para evitar division por cero en el escalado
+    if (minY == maxY) { // Si todos los puntos son iguales
+        minY -= 1; // Para que haya un rango, aunque sea pequeno
+        maxY += 1;
+    }
+    if (minY < 0) minY = 0; // El tiempo de respuesta no puede ser negativo
+
+    // Dibujar el grafico
+    for (int i = 0; i < plotHeight; ++i) {
+        plot[i][0] = '|'; // Eje Y
+    }
+    for (int j = 0; j < plotWidth; ++j) {
+        plot[plotHeight - 1][j] = '-'; // Eje X
+    }
+    plot[plotHeight - 1][0] = '+'; // Origen
+
+    // Dibujar la funcion
+    for (int j = 0; j < plotWidth; ++j) {
+        double x_scaled = minX + (maxX - minX) * j / plotWidth;
+        double y_func = a * std::pow(x_scaled, 2) + b_coef * x_scaled + c;
+
+        int y_pos = static_cast<int>((y_func - minY) / (maxY - minY) * (plotHeight - 1));
+        y_pos = plotHeight - 1 - y_pos; // Invertir para que el origen este abajo
+
+        if (y_pos >= 0 && y_pos < plotHeight && j >= 0 && j < plotWidth) {
+            plot[y_pos][j] = '*';
+        }
+    }
+
+    // Dibujar los datos originales
+    for (size_t i = 0; i < datos.usuarios.size(); ++i) {
+        double x_data = datos.usuarios[i];
+        double y_data = datos.tiempoRespuesta[i];
+
+        int x_pos = static_cast<int>((x_data - minX) / (maxX - minX) * (plotWidth - 1));
+        int y_pos = static_cast<int>((y_data - minY) / (maxY - minY) * (plotHeight - 1));
+        y_pos = plotHeight - 1 - y_pos;
+
+        if (x_pos >= 0 && x_pos < plotWidth && y_pos >= 0 && y_pos < plotHeight) {
+            plot[y_pos][x_pos] = 'o';
+        }
+    }
+
+    // Imprimir el grafico
+    for (int i = 0; i < plotHeight; ++i) {
+        std::cout << plot[i] << std::endl;
+    }
+
+    // Etiquetas de los ejes (muy basicas)
+    std::cout << "0" << std::string(plotWidth / 2 - 1, ' ') << "Usuarios" << std::string(plotWidth - plotWidth / 2 - 8, ' ') << static_cast<int>(maxX) << std::endl;
+    std::cout << "Tiempo de Respuesta (ms)" << std::endl;
 
     std::cout << "\nPresione Enter para continuar con la prediccion..." << std::endl;
     std::cin.get();
 
-    // --- 7. Prediccion de Rendimiento --- 
+    // --- 7. Prediccion de Rendimiento ---
     std::cout << "\n--- Prediccion de Rendimiento ---" << std::endl;
     std::cout << "Ahora puedes ingresar diferentes numeros de usuarios para ver la prediccion del tiempo de respuesta." << std::endl;
     std::cout << "Ingresa 0 para salir en cualquier momento." << std::endl;
