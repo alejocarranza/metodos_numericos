@@ -131,8 +131,8 @@ int main() {
     std::cout << "Vamos a encontrar los valores de a, b y c de forma iterativa." << std::endl;
     std::cout << "Observa como los valores se ajustan en cada paso:" << std::endl;
 
-    double tolerancia = 0.001;
-    int maxIteraciones = 400;
+    double tolerancia = 0.0001;
+    int maxIteraciones = 1000;
     std::vector<double> coeficientes = gaussSeidel(A, b, tolerancia, maxIteraciones);
     
     double a = coeficientes[0];
